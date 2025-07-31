@@ -20,11 +20,16 @@ Executing program
 **Run below given command in root dir. as given in sequence:**
 
 composer install
+
 php bin/console doctrine:database:create
+
 php bin/console doctrine:migrations:migrate
+
 php bin/console doctrine:fixtures:load
 
-optional
+
+
+**optional**
 [
 Open the .env file in root dir.
 Replaces APP_ENV=dev with APP_ENV=prod
@@ -32,8 +37,8 @@ Then save file.
 php bin/console clear:cache --env=prod
 ]
 
-
 symfony server:start --port:8081
+
 
 Now Open this link in your browser
 http://localhost:8081/
