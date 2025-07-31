@@ -20,5 +20,17 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    App\EventListener\AccessDeniedHandler:
+        arguments: ['@twig']
+        tags:
+            - { name: 'security.access_denied_handler' }
+
+    
+    App\Security\LoginSuccessHandler:
+        arguments: ['@router']
+
+    App\EventListener\ExceptionListener:
+        tags: [kernel.event_listener]                    
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

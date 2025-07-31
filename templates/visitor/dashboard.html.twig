@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+  <div class="container">
+  <div><a href="{{path('booking_add')}}">Book Flight</a> </div>
+
+  <div class="row title">
+    <div class="col-sm-2 col-md-2">Flight From</div>
+    <div class="col-sm-2 col-md-2">Flight To</div>
+    <div class="col-sm-2 col-md-2">Departure Date</div>
+    <div class="col-sm-2 col-md-2">Name</div>
+    <div class="col-sm-2 col-md-2">Airline</div>
+    <div class="col-sm-2 col-md-2">Action</div>
+
+
+  </div>
+  {% if bookings is empty %}
+  
+  <div class="row" style="padding:5px 0 5px 0;">
+    <div class="col-sm-12 col-md-12" style="text-align:center">No record</div>
+     </div>
+  
+  {% endif %}
+  {% for booking in bookings %}
+  <div class="row">
+    <div class="col-sm-2 col-md-2">{{booking.flightFrom}}</div>
+    <div class="col-sm-2 col-md-2">{{booking.flightTo}}</div>
+    <div class="col-sm-2 col-md-2">{{booking.departureDate|date("Y-m-d")}}</div>
+    <div class="col-sm-2 col-md-2">{{booking.userId.firstName}}</div>
+    <div class="col-sm-2 col-md-2">{{booking.airlineId.name}}</div>
+    {% set disabledClass = '' %}
+    {% set currentDate = "now"|date("Y-m-d") %}
+    {% if currentDate > booking.departureDate|date("Y-m-d") %}
+      {% set disabledClass = 'disabled' %}
+    {% endif %}
+
+    <div class="col-sm-2 col-md-2"><a class="{{disabledClass}}"  href="{{path('booking_edit', {'id': booking.id})}}">Edit</a></div>
+ 
+     </div>
+  
+  {% endfor %}
+  
+ 
+</div>
+<script>
+const rows = document.querySelectorAll('.row');
+rows.forEach((row, index) => {
+  if (index % 2 === 0) {
+    row.classList.add('even-row');
+  } else {
+    row.classList.add('odd-row');
+  }
+});
+</script>
+{% endblock %}

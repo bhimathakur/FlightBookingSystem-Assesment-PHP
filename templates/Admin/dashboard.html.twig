@@ -1,0 +1,190 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+  <div class="container" style="max-width: 1360px;">
+  <div><a href="{{path('booking_add')}}">Book Flight</a> </div>
+  <form name="search" method='post' id="searchForm">
+
+  <div class="row search">
+    <div class="col-sm-2 col-md-2">
+    Flight From<input type="text" name= 'flight_from' value="">
+    </div>
+<div class="col-sm-2 col-md-2">
+    Flight To<input type="text" name= 'flight_to' value="">
+</div>
+<div class="col-sm-2 col-md-2">
+
+    Airline<br /> 
+    <select name="airline">
+      <option value="">Select Airline</option>
+      {% for airline in airlines %}
+        <option value="{{airline.id}}">{{airline.name}}</option>
+      {% endfor %}
+
+    </select>
+</div>
+<div class="col-sm-2 col-md-2">
+    Departure Date From<input type="text" name='departure_date_from' value="" class="js-datepicker">
+</div>
+<div class="col-sm-1 col-md-2">
+
+    Departure Date To<input type="text" name='departure_date_to' value="" class="js-datepicker">
+    </div>
+    <div class="col-sm-1 col-md-1"><br /><input  class="btn btn-primary" type='submit' value="Search" id="search">
+</div>
+
+    <div class="col-sm-1 col-md-1"><a href="#" class="btn btn-secondary" id="export">Export CSV</a> </div>
+     </div>
+
+
+  </div>
+</form>
+
+
+  <div class="row title">
+    <div class="col-sm-2 col-md-2">Flight From</div>
+    <div class="col-sm-2 col-md-2">Flight To</div>
+    <div class="col-sm-2 col-md-2">Departure Date</div>
+    <div class="col-sm-2 col-md-2">Name</div>
+    <div class="col-sm-2 col-md-2">Airline</div>
+  </div>
+  <div id="loading" class="loading" style="display:none;"><img src="{{asset('image/loading.gif')}}"></div>
+  <div class="no-record" id="no-record"></div>
+  <div id='listing' class='listing'>
+  
+    
+  {% for booking in bookings %}
+  <div class="row">
+      <div class="col-sm-2 col-md-2">{{booking.flightFrom}}</div>
+      <div class="col-sm-2 col-md-2">{{booking.flightTo}}</div>
+      <div class="col-sm-2 col-md-2">{{booking.departureDate|date("d-m-Y")}}</div>
+      <div class="col-sm-2 col-md-2">{{booking.userId.firstName}}</div>
+      <div class="col-sm-2 col-md-2">{{booking.airlineId.name}}</div>
+    </div>
+  
+  {% endfor %}
+
+  {% if bookings is empty %}
+			<div class='row' style='text-align:center; color:red;'>
+				<div class="col-md-10">No record found</div>
+			</div>
+		{% endif %}
+  </div>
+  
+ 
+</div>
+<script>
+//add odd even css class on the row
+const rows = document.querySelectorAll('.row');
+rows.forEach((row, index) => {
+  (index % 2 == 0) ? row.classList.add('even-row'): row.classList.add('odd-row');
+});
+
+var searchForm = document.getElementById("searchForm");
+searchForm.addEventListener("submit", function(event){
+  event.preventDefault();
+  searchResult(event);
+});
+
+//This funciton get search result based on the search parameters and display on the page
+async function searchResult()
+{
+    const formData = new FormData(event.target);
+    const route = "{{path('search_result')}}";
+    if(formData.get('departure_date_from') < formData.get('departure_date_to')){
+      alert('Departure Date From should be greater than Departure Date To');
+      return false;
+    }
+
+    const container = document.getElementById('listing');
+    container.textContent = '';
+
+    document.getElementById('loading').style.display='block';
+
+
+    const response = await fetch(route, {
+      method: 'POST',
+      body: formData
+    })
+    .then((response) => {
+        
+        return response.json();
+    })
+    .then((response) => {
+      if(response.bookings.length > 0) {
+        addSearchResult(response);
+      } else {
+        document.getElementById('no-record').textContent= 'No record found'; 
+        document.getElementById('loading').style.display='none';
+      }
+       
+    });
+}
+
+//this funciton create the div element
+function createDiv(value)
+{
+    const childDiv = document.createElement('div');
+    childDiv.className = 'col-sm-2 col-md-2';
+    childDiv.textContent = `${value}`;
+    return childDiv;
+
+}
+
+//This funciton add the search result into html and append the div on the page
+function addSearchResult(searchResult)
+{
+    const container = document.getElementById('listing');
+        var i = 1;
+        for (const key of Object.keys(searchResult.bookings)) {
+            const row = document.createElement('div');
+            row.className = (i % 2 == 0) ? 'row even-row': 'row odd-row';
+            container.appendChild(row);
+
+                 for (const keyto of Object.keys(searchResult.bookings[key])) {
+                    const childDiv = createDiv(searchResult.bookings[key][keyto]);
+                    row.appendChild(childDiv);
+                  }
+            container.appendChild(row);
+            i++;
+        }
+//        console.log(document.getElementById('no-record'));
+        document.getElementById('loading').style.display='none';
+        document.getElementById('no-record').textContent = '';
+}
+
+//This function export the csv file
+const exportButton = document.getElementById("export");
+exportButton.addEventListener("click", function(event){
+  event.preventDefault();
+  exportCsv(searchForm);
+  
+});
+
+//This funciton export the csv report of flight booking records based on the searched parameters.
+async function exportCsv(searchForm)
+{
+    const formData = new FormData(searchForm);
+    const route = "{{path('export_csv')}}";
+
+    if(formData.get('departure_date_from') < formData.get('departure_date_to')){
+      alert('Departure Date From should be greater than Departure Date To');
+      return false;
+    }
+
+    const response = await fetch(route, {
+      method: 'POST',
+      body: formData
+    })
+    .then((response) => {
+        return response.json();
+    })
+    .then((response) => {
+       const exportPath = '{{path("download-csv", {"filename": "fileName"})}}';
+       url = exportPath.replace("fileName", response.filename);
+       window.open(url);
+       
+    });
+}
+
+</script>
+{% endblock %}

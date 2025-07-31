@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    
+    <div class="register-form">
+
+    <div class="col-sm-5">
+        {{ form_start(flightBooking, {'attr': {'id': 'flight_booking_edit'}}) }}
+    </div>
+    <div class="col-sm-5">
+
+    {{ form_row(flightBooking.flight_from) }}
+    </div>
+    {{ form_row(flightBooking.flight_to) }}
+
+    {{ form_row(flightBooking.departure_date) }}
+    {{ form_end(flightBooking) }}
+</div>  
+  <script>
+  var submitBtn = document.getElementById("flight_booking_edit");
+    submitBtn.addEventListener("submit", function(event){
+    const today = new Date();
+    const departureDate = document.getElementById("flight_booking_departure_date").value;
+
+    if (new Date(departureDate).getTime() < today.getTime()) {
+        alert('Departure Date should be greater than or equal to Current date');
+        event.preventDefault();
+     }
+    
+});
+  </script>
+{% endblock %}
